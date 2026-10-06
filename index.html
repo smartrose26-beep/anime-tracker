@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AnimePulse | Suivi d'anime</title>
+    <meta
+      name="description"
+      content="Suivez vos animes, notez-les et découvrez les prochaines sorties et saisons."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark">A</div>
+          <div>
+            <p class="brand-name">AnimePulse</p>
+            <span>Suivi & sorties</span>
+          </div>
+        </div>
+
+        <nav class="main-nav">
+          <a href="#catalogue">Catalogue</a>
+          <a href="#sorties">Sorties</a>
+          <a href="#watchlist">Watchlist</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Votre espace anime</p>
+            <h1>Suivez vos séries, notez vos coups de cœur et vois les prochaines sorties.</h1>
+            <p class="subtitle">
+              Trouvez rapidement vos animes favoris, ajoutez-les à votre liste et regardez
+              quelles saisons arrivent bientôt.
+            </p>
+
+            <div class="hero-actions">
+              <a class="primary-btn" href="#catalogue">Explorer</a>
+              <a class="secondary-btn" href="#sorties">Voir les sorties</a>
+            </div>
+
+            <div class="hero-stats">
+              <div>
+                <strong id="total-anime">0</strong>
+                <span>animes</span>
+              </div>
+              <div>
+                <strong id="total-favoris">0</strong>
+                <span>favoris</span>
+              </div>
+              <div>
+                <strong id="moyenne-note">0.0</strong>
+                <span>note moyenne</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="panel-card panel-card--glow">
+              <div class="mini-label">Saison à venir</div>
+              <h3 id="featured-title">Dandadan</h3>
+              <p id="featured-meta">Action • Comédie • 2026</p>
+              <div class="status-pill status-pill--upcoming">Sortie prévue le 12 janvier</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="catalogue" class="catalogue-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Catalogue</p>
+              <h2>Découvrir des animes</h2>
+            </div>
+
+            <label class="search-box">
+              <span>🔎</span>
+              <input
+                id="search-input"
+                type="search"
+                placeholder="Rechercher un anime, un genre..."
+                aria-label="Rechercher un anime"
+              />
+            </label>
+          </div>
+
+          <div id="anime-grid" class="anime-grid" aria-live="polite"></div>
+        </section>
+
+        <section id="sorties" class="split-layout">
+          <div class="panel-block">
+            <div class="section-heading section-heading--compact">
+              <div>
+                <p class="eyebrow">À venir</p>
+                <h2>Sorties prévues</h2>
+              </div>
+            </div>
+            <div id="upcoming-list" class="upcoming-list"></div>
+          </div>
+
+          <aside id="watchlist" class="panel-block">
+            <div class="section-heading section-heading--compact">
+              <div>
+                <p class="eyebrow">Ma liste</p>
+                <h2>Watchlist</h2>
+              </div>
+            </div>
+            <div id="watchlist-items" class="watchlist-items"></div>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
