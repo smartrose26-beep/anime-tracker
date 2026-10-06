@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AnimePulse | Suivi d'anime</title>
+    <title>AnimePulse | Catalogue anime réel</title>
     <meta
       name="description"
-      content="Suivez vos animes, notez-les et découvrez les prochaines sorties et saisons."
+      content="Catalogue anime en temps réel avec couvertures réelles, notes et prochaines sorties."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,7 +23,7 @@
           <div class="brand-mark">A</div>
           <div>
             <p class="brand-name">AnimePulse</p>
-            <span>Suivi & sorties</span>
+            <span>Catalogue réel</span>
           </div>
         </div>
 
@@ -37,11 +37,11 @@
       <main>
         <section class="hero">
           <div class="hero-copy">
-            <p class="eyebrow">Votre espace anime</p>
-            <h1>Suivez vos séries, notez vos coups de cœur et vois les prochaines sorties.</h1>
+            <p class="eyebrow">Anime en direct</p>
+            <h1>Découvrez les animes du moment avec leurs vraies couvertures et dates.</h1>
             <p class="subtitle">
-              Trouvez rapidement vos animes favoris, ajoutez-les à votre liste et regardez
-              quelles saisons arrivent bientôt.
+              Recherchez des titres, ajoutez-les à votre watchlist et suivez les sorties à venir
+              grâce aux données live de l’API Jikan.
             </p>
 
             <div class="hero-actions">
@@ -52,7 +52,7 @@
             <div class="hero-stats">
               <div>
                 <strong id="total-anime">0</strong>
-                <span>animes</span>
+                <span>titres</span>
               </div>
               <div>
                 <strong id="total-favoris">0</strong>
@@ -67,10 +67,10 @@
 
           <div class="hero-panel">
             <div class="panel-card panel-card--glow">
-              <div class="mini-label">Saison à venir</div>
-              <h3 id="featured-title">Dandadan</h3>
-              <p id="featured-meta">Action • Comédie • 2026</p>
-              <div class="status-pill status-pill--upcoming">Sortie prévue le 12 janvier</div>
+              <div class="mini-label">À venir</div>
+              <h3 id="featured-title">Chargement…</h3>
+              <p id="featured-meta">Mise à jour API</p>
+              <div id="featured-status" class="status-pill status-pill--upcoming">Chargement des sorties…</div>
             </div>
           </div>
         </section>
@@ -87,12 +87,13 @@
               <input
                 id="search-input"
                 type="search"
-                placeholder="Rechercher un anime, un genre..."
+                placeholder="Rechercher un anime, un studio, un genre..."
                 aria-label="Rechercher un anime"
               />
             </label>
           </div>
 
+          <div id="status-line" class="status-line">Chargement des titres…</div>
           <div id="anime-grid" class="anime-grid" aria-live="polite"></div>
         </section>
 

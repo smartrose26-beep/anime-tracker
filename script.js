@@ -1,100 +1,12 @@
-const STORAGE_KEY = "animepulse-data";
+const STORAGE_KEY = "animepulse-live-data";
 
-const animeData = [
-  {
-    id: 1,
-    title: "Dandadan",
-    kind: "TV",
-    year: 2026,
-    status: "Sortie prévue",
-    score: 8.9,
-    genres: ["Action", "Comédie", "Fantastique"],
-    accent: "D",
-    releaseDate: "12 Jan",
-    season: "Printemps 2026",
-    description: "Un mélange explosif d'action absurde et de super-pouvoirs." 
-  },
-  {
-    id: 2,
-    title: "Frieren: Beyond Journey's End",
-    kind: "TV",
-    year: 2025,
-    status: "En cours",
-    score: 9.5,
-    genres: ["Fantasy", "Drame", "Aventure"],
-    accent: "F",
-    releaseDate: "28 Dec",
-    season: "Hiver 2025",
-    description: "Une odyssée contemplative sur le passage du temps et la mémoire." 
-  },
-  {
-    id: 3,
-    title: "Solo Leveling",
-    kind: "TV",
-    year: 2024,
-    status: "Terminé",
-    score: 9.1,
-    genres: ["Action", "Fantasy", "Aventure"],
-    accent: "S",
-    releaseDate: "18 Nov",
-    season: "Automne 2024",
-    description: "Un chasseur talentueux se lance dans une montée en puissance phénoménale." 
-  },
-  {
-    id: 4,
-    title: "Kaiju No. 8",
-    kind: "TV",
-    year: 2025,
-    status: "À suivre",
-    score: 8.6,
-    genres: ["Action", "Science-fiction"],
-    accent: "K",
-    releaseDate: "08 Fev",
-    season: "Printemps 2025",
-    description: "Un jeune homme devient un héros malgré sa vie de tous les jours." 
-  },
-  {
-    id: 5,
-    title: "Spy x Family",
-    kind: "TV",
-    year: 2026,
-    status: "Nouvelle saison",
-    score: 8.8,
-    genres: ["Action", "Comédie", "Familial"],
-    accent: "Sx",
-    releaseDate: "21 Mar",
-    season: "Printemps 2026",
-    description: "Une équipe de faux agents pour une mission ultra-complexe." 
-  },
-  {
-    id: 6,
-    title: "Blue Lock",
-    kind: "TV",
-    year: 2025,
-    status: "À suivre",
-    score: 8.7,
-    genres: ["Sport", "Action"],
-    accent: "BL",
-    releaseDate: "16 Jan",
-    season: "Hiver 2025",
-    description: "Le football comme jamais vu, au cœur d'un entraînement brutal." 
-  }
-];
-
-const defaultState = {
-  favorites: [1, 2],
-  ratings: {
-    1: 9,
-    2: 10,
-    3: 8,
-  },
-};
-
-const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || defaultState;
 const state = {
-  favorites: new Set(saved.favorites || []),
-  ratings: saved.ratings || {},
+  favorites: new Set(),
+  ratings: {},
   query: "",
+  animeList: [],
+  upcoming: [],
+  loading: false,
 };
 
 const animeGrid = document.querySelector("#anime-grid");
@@ -106,6 +18,16 @@ const totalFavoris = document.querySelector("#total-favoris");
 const moyenneNote = document.querySelector("#moyenne-note");
 const featuredTitle = document.querySelector("#featured-title");
 const featuredMeta = document.querySelector("#featured-meta");
+const featuredStatus = document.querySelector("#featured-status");
+const statusLine = document.querySelector("#status-line");
+
+function loadLocalState() {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+  if (!saved) return;
+
+  state.favorites = new Set(saved.favorites || []);
+  state.ratings = saved.ratings || {};
+}
 
 function persistState() {
   localStorage.setItem(
@@ -117,54 +39,111 @@ function persistState() {
   );
 }
 
-function getFilteredAnime() {
-  const query = state.query.trim().toLowerCase();
+function formatDateForCard(date) {
+  if (!date) return "Date inconnue";
+  const parsed = new Date(date);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString("fr-FR", { month: "short", day: "numeric" });
+}
 
-  if (!query) {
-    return animeData;
+function fetchJson(url) {
+  return fetch(url, { headers: { Accept: "application/json" } }).then((response) => {
+    if (!response.ok) {
+      throw new Error(`Erreur API ${response.status}`);
+    }
+    return response.json();
+  });
+}
+
+async function loadAnimeList() {
+  const query = state.query.trim();
+  state.loading = true;
+  statusLine.textContent = query ? `Recherche de “${query}”…` : "Chargement des titres populaires…";
+
+  try {
+    const url = query
+      ? `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(query)}&limit=12&sfw`
+      : "https://api.jikan.moe/v4/top/anime?limit=12";
+
+    const payload = await fetchJson(url);
+    const items = (payload.data || []).map((anime) => ({
+      id: anime.mal_id,
+      title: anime.title || anime.title_english || "Titre inconnu",
+      kind: anime.type || "TV",
+      year: anime.year || "—",
+      score: anime.score || 0,
+      genres: (anime.genres || []).slice(0, 3).map((g) => g.name),
+      image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || "",
+      status: anime.status || "Inconnu",
+      premiered: anime.premiered || null,
+      episodes: anime.episodes || "?",
+      description: anime.synopsis || "Aucune description disponible pour le moment.",
+    }));
+
+    state.animeList = items;
+    statusLine.textContent = query
+      ? `${items.length} résultat(s) trouvé(s) pour “${query}”` 
+      : "Données mises à jour depuis l’API Jikan";
+  } catch (error) {
+    console.error(error);
+    state.animeList = [];
+    statusLine.textContent = "Impossible de charger les données en ce moment. Réessayez plus tard.";
+  } finally {
+    state.loading = false;
   }
 
-  return animeData.filter((anime) => {
-    const haystack = [anime.title, anime.kind, anime.year, ...anime.genres]
-      .join(" ")
-      .toLowerCase();
+  renderAnimeGrid();
+  renderStats();
+}
 
-    return haystack.includes(query);
-  });
+async function loadUpcoming() {
+  try {
+    const payload = await fetchJson("https://api.jikan.moe/v4/seasons/upcoming?limit=6");
+    state.upcoming = (payload.data || []).map((anime) => ({
+      id: anime.mal_id,
+      title: anime.title || anime.title_english || "Titre inconnu",
+      season: anime.season || "À annoncer",
+      date: anime.airing_start || anime.aired?.from || null,
+      genres: (anime.genres || []).slice(0, 2).map((g) => g.name),
+      image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || "",
+    }));
+  } catch (error) {
+    console.error(error);
+    state.upcoming = [];
+  }
+
+  renderUpcoming();
+  renderFeatured();
 }
 
 function renderStats() {
   const favoritesCount = state.favorites.size;
-  const ratedValues = Object.values(state.ratings).map(Number);
+  const ratedValues = Object.values(state.ratings).map(Number).filter((v) => Number.isFinite(v));
   const average = ratedValues.length
     ? (ratedValues.reduce((sum, value) => sum + value, 0) / ratedValues.length).toFixed(1)
     : "0.0";
 
-  totalAnime.textContent = animeData.length;
+  totalAnime.textContent = state.animeList.length || "0";
   totalFavoris.textContent = favoritesCount;
   moyenneNote.textContent = average;
 }
 
 function renderFeatured() {
-  const featured = animeData[0];
-  featuredTitle.textContent = featured.title;
-  featuredMeta.textContent = `${featured.genres.join(" • ")} • ${featured.season}`;
-}
-
-function toggleFavorite(id) {
-  if (state.favorites.has(id)) {
-    state.favorites.delete(id);
-  } else {
-    state.favorites.add(id);
+  const feature = state.upcoming[0] || state.animeList[0];
+  if (!feature) {
+    featuredTitle.textContent = "Aucune donnée";
+    featuredMeta.textContent = "Réessayez plus tard";
+    featuredStatus.textContent = "API indisponible";
+    return;
   }
-  persistState();
-  renderAll();
-}
 
-function updateRating(id, value) {
-  state.ratings[id] = Number(value);
-  persistState();
-  renderAll();
+  featuredTitle.textContent = feature.title;
+  featuredMeta.textContent = feature.genres?.length
+    ? `${feature.genres.join(" • ")}`
+    : "Saison à venir";
+  featuredStatus.textContent = feature.date
+    ? `Sortie prévue le ${formatDateForCard(feature.date)}`
+    : "Date à confirmer";
 }
 
 function buildAnimeCard(anime) {
@@ -174,24 +153,24 @@ function buildAnimeCard(anime) {
   const isFavorite = state.favorites.has(anime.id);
   const userRating = state.ratings[anime.id] ?? "";
 
+  const visual = anime.image
+    ? `background-image: url('${anime.image}');`
+    : "background: linear-gradient(135deg, rgba(124,156,255,0.35), rgba(17,34,51,0.8));";
+
   card.innerHTML = `
-    <div class="anime-visual" data-accent="${anime.accent}" style="background: linear-gradient(135deg, rgba(124, 156, 255, 0.35), rgba(17, 34, 51, 0.8)), var(--card);">
-      <span class="floating-badge">${anime.status}</span>
+    <div class="anime-visual" style="${visual}">
+      <span class="floating-badge">${anime.status || anime.kind || "TV"}</span>
+      <span class="score-badge">★ ${Number(anime.score || 0).toFixed(1)}</span>
     </div>
     <div class="anime-content">
-      <div class="anime-head">
-        <div>
-          <h3 class="anime-title">${anime.title}</h3>
-          <p class="anime-meta">${anime.kind} • ${anime.year} • ${anime.season}</p>
-        </div>
-      </div>
-
+      <h3 class="anime-title">${anime.title}</h3>
+      <p class="anime-meta">${anime.kind || "TV"} • ${anime.year || "—"} • ${anime.episodes || "?"} épisodes</p>
       <div class="genre-row">
-        ${anime.genres.map((genre) => `<span class="genre-tag">${genre}</span>`).join("")}
+        ${(anime.genres || []).map((genre) => `<span class="genre-tag">${genre}</span>`).join("") || '<span class="genre-tag">Divers</span>'}
       </div>
 
       <div class="anime-footer">
-        <div class="score-box"><span class="star"></span> ${anime.score.toFixed(1)}</div>
+        <div class="score-box"><span class="star"></span> ${Number(anime.score || 0).toFixed(1)}</div>
         <div class="card-actions">
           <button class="favorite-btn ${isFavorite ? "active" : ""}" data-action="favorite" data-id="${anime.id}">
             ${isFavorite ? "♥" : "♡"}
@@ -222,43 +201,50 @@ function buildAnimeCard(anime) {
 }
 
 function renderAnimeGrid() {
-  const filtered = getFilteredAnime();
+  if (state.loading) {
+    animeGrid.innerHTML = '<div class="empty-state">Chargement des animes…</div>';
+    return;
+  }
 
-  if (!filtered.length) {
-    animeGrid.innerHTML = '<div class="empty-state">Aucun anime ne correspond à votre recherche.</div>';
+  if (!state.animeList.length) {
+    animeGrid.innerHTML = '<div class="empty-state">Aucun anime trouvé pour cette recherche.</div>';
     return;
   }
 
   animeGrid.innerHTML = "";
-  filtered.forEach((anime) => animeGrid.appendChild(buildAnimeCard(anime)));
+  state.animeList.forEach((anime) => animeGrid.appendChild(buildAnimeCard(anime)));
 }
 
 function renderUpcoming() {
-  const upcoming = [...animeData]
-    .sort((a, b) => a.releaseDate.localeCompare(b.releaseDate))
-    .slice(0, 5);
+  if (!state.upcoming.length) {
+    upcomingList.innerHTML = '<div class="empty-state">Aucune sortie à venir actuellement.</div>';
+    return;
+  }
 
-  upcomingList.innerHTML = upcoming
-    .map(
-      (anime) => `
-      <div class="upcoming-item">
-        <div class="release-date"><strong>${anime.releaseDate.split(" ")[0]}</strong>${anime.releaseDate.split(" ")[1]}</div>
-        <div class="upcoming-text">
-          <h4>${anime.title}</h4>
-          <p>${anime.season} • ${anime.genres.slice(0, 2).join(" • ")}</p>
+  upcomingList.innerHTML = state.upcoming
+    .map((anime) => {
+      const monthDay = anime.date ? formatDateForCard(anime.date).split(" ") : ["?", ""];
+      const day = monthDay[1] || "?";
+      const month = monthDay[0] || "?";
+      return `
+        <div class="upcoming-item">
+          <div class="release-date"><strong>${day}</strong>${month}</div>
+          <div class="upcoming-text">
+            <h4>${anime.title}</h4>
+            <p>${anime.season} • ${(anime.genres || []).slice(0, 2).join(" • ") || "Divers"}</p>
+          </div>
+          <span class="meta-tag">${anime.season}</span>
         </div>
-        <span class="meta-tag">${anime.status}</span>
-      </div>
-      `
-    )
+      `;
+    })
     .join("");
 }
 
 function renderWatchlist() {
-  const favorites = animeData.filter((anime) => state.favorites.has(anime.id));
+  const favorites = state.animeList.filter((anime) => state.favorites.has(anime.id));
 
   if (!favorites.length) {
-    watchlistItems.innerHTML = '<div class="empty-state">Votre watchlist est vide pour l’instant.</div>';
+    watchlistItems.innerHTML = '<div class="empty-state">Votre watchlist est vide. Ajoutez un anime pour le suivre.</div>';
     return;
   }
 
@@ -269,8 +255,8 @@ function renderWatchlist() {
         <div>
           <h4>${anime.title}</h4>
           <div class="watchlist-meta">
-            <span>${anime.kind}</span>
-            <span>${anime.season}</span>
+            <span>${anime.kind || "TV"}</span>
+            <span>${anime.year || "—"}</span>
             <span>Note ${state.ratings[anime.id] || "-"}/10</span>
           </div>
         </div>
@@ -281,17 +267,33 @@ function renderWatchlist() {
     .join("");
 }
 
-function renderAll() {
-  renderStats();
-  renderFeatured();
+function toggleFavorite(id) {
+  if (state.favorites.has(id)) {
+    state.favorites.delete(id);
+  } else {
+    state.favorites.add(id);
+  }
+  persistState();
   renderAnimeGrid();
-  renderUpcoming();
+  renderWatchlist();
+  renderStats();
+}
+
+function updateRating(id, value) {
+  if (!value) {
+    delete state.ratings[id];
+  } else {
+    state.ratings[id] = Number(value);
+  }
+
+  persistState();
+  renderStats();
   renderWatchlist();
 }
 
 searchInput.addEventListener("input", (event) => {
   state.query = event.target.value;
-  renderAnimeGrid();
+  loadAnimeList();
 });
 
 document.addEventListener("click", (event) => {
@@ -299,7 +301,6 @@ document.addEventListener("click", (event) => {
   if (!target) return;
 
   const { action, id } = target.dataset;
-
   if (action === "favorite") {
     toggleFavorite(Number(id));
   }
@@ -316,4 +317,15 @@ document.addEventListener("change", (event) => {
   updateRating(Number(target.dataset.id), target.value);
 });
 
-renderAll();
+loadLocalState();
+loadAnimeList();
+loadUpcoming();
+renderWatchlist();
+renderStats();
+
+window.addEventListener("storage", () => {
+  loadLocalState();
+  renderStats();
+  renderWatchlist();
+  renderAnimeGrid();
+});
