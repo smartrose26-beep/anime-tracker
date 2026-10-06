@@ -1,13 +1,13 @@
 # AnimePulse
 
-AnimePulse utilise maintenant des données réelles via l’API Jikan, qui fournit des informations officielles et des images d’animes (couvertures, notes, genres, saisons, sorties à venir).
+AnimePulse utilise des données live via l’API Jikan et affiche aussi les bandes-annonces disponibles pour les titres, en ouvrant le trailer YouTube associé.
 
 ## Ce qui a changé
 
-- recherche réelle d’anime via l’API publique Jikan
+- recherche réelle d’anime via l’API Jikan
 - vraies images de couverture d’anime
-- notes et genres issus de données live
-- section des sorties prévues alimentée via les prochaines saisons
+- notes, genres et dates d’anime provenant de sources live
+- boutons "▶ Trailer" pour ouvrir les bandes-annonces YouTube
 - watchlist enregistrée dans le navigateur
 - notation personnelle de 1 à 10 par anime
 
@@ -23,7 +23,7 @@ Ouvrez simplement `index.html` dans votre navigateur.
 
 - `index.html` : structure du site
 - `style.css` : design et mise en page
-- `script.js` : chargement des données, recherche, favoris et sorties
+- `script.js` : chargement des données, recherche, favoris, sorties et trailers
 
 ## Remarque
 

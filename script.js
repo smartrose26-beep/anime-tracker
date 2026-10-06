@@ -55,6 +55,13 @@ function fetchJson(url) {
   });
 }
 
+function makeTrailerUrl(anime) {
+  if (!anime) return "";
+  if (anime.trailer?.embed_url) return anime.trailer.embed_url;
+  if (anime.trailer?.youtube_id) return `https://www.youtube.com/watch?v=${anime.trailer.youtube_id}`;
+  return "";
+}
+
 async function loadAnimeList() {
   const query = state.query.trim();
   state.loading = true;
@@ -78,6 +85,7 @@ async function loadAnimeList() {
       premiered: anime.premiered || null,
       episodes: anime.episodes || "?",
       description: anime.synopsis || "Aucune description disponible pour le moment.",
+      trailerUrl: makeTrailerUrl(anime),
     }));
 
     state.animeList = items;
@@ -106,6 +114,7 @@ async function loadUpcoming() {
       date: anime.airing_start || anime.aired?.from || null,
       genres: (anime.genres || []).slice(0, 2).map((g) => g.name),
       image: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || "",
+      trailerUrl: makeTrailerUrl(anime),
     }));
   } catch (error) {
     console.error(error);
@@ -152,6 +161,9 @@ function buildAnimeCard(anime) {
 
   const isFavorite = state.favorites.has(anime.id);
   const userRating = state.ratings[anime.id] ?? "";
+  const trailerButton = anime.trailerUrl
+    ? `<a class="trailer-btn" href="${anime.trailerUrl}" target="_blank" rel="noopener noreferrer">▶ Trailer</a>`
+    : "";
 
   const visual = anime.image
     ? `background-image: url('${anime.image}');`
@@ -176,6 +188,7 @@ function buildAnimeCard(anime) {
             ${isFavorite ? "♥" : "♡"}
           </button>
           <button class="watch-btn" data-action="watch" data-id="${anime.id}">+ Liste</button>
+          ${trailerButton}
         </div>
       </div>
 

@@ -24,7 +24,8 @@ img {
 
 button,
 input,
-select {
+select,
+a {
   font: inherit;
 }
 
@@ -127,7 +128,8 @@ select {
 .primary-btn,
 .secondary-btn,
 .favorite-btn,
-.watch-btn {
+.watch-btn,
+.trailer-btn {
   border: none;
   border-radius: 14px;
   text-decoration: none;
@@ -160,7 +162,8 @@ select {
 .primary-btn:hover,
 .secondary-btn:hover,
 .favorite-btn:hover,
-.watch-btn:hover {
+.watch-btn:hover,
+.trailer-btn:hover {
   transform: translateY(-2px);
 }
 
@@ -426,10 +429,12 @@ select {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .favorite-btn,
-.watch-btn {
+.watch-btn,
+.trailer-btn {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #edf6ff;
@@ -447,6 +452,16 @@ select {
   background: rgba(142, 240, 215, 0.08);
   border-color: rgba(142, 240, 215, 0.2);
   color: #8ef0d7;
+}
+
+.trailer-btn {
+  background: rgba(255, 207, 112, 0.12);
+  border-color: rgba(255, 207, 112, 0.2);
+  color: #ffcf70;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rating-select {
